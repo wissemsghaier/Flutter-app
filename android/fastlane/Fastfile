@@ -1,0 +1,90 @@
+# This file contains the fastlane.tools configuration
+# You can find the documentation at https://docs.fastlane.tools
+#
+# For a list of all available actions, check out
+#
+#     https://docs.fastlane.tools/actions
+#
+# For a list of all available plugins, check out
+#
+#     https://docs.fastlane.tools/plugins/available-plugins
+#
+
+# Uncomment the line if you want fastlane to automatically update itself
+# update_fastlane
+
+default_platform(:android)
+
+platform :android do
+  lane :test do
+    # Change directory to the project root where `flutter` command is available
+    Dir.chdir("../..") do
+      # Verify that we're in the correct directory
+      sh("pwd")
+      # Run the Flutter tests
+      sh("flutter test")
+    end
+  end
+
+  desc "Submit a new Beta Build to Crashlytics Beta"
+  lane :beta do
+    gradle(task: "clean assembleRelease")
+    crashlytics
+  
+    # sh "your_script.sh"
+    # You can also use other beta testing services here
+  end
+
+  desc "Deploy a new version to the Google Play"
+  lane :deploy do
+    gradle(task: "clean assembleRelease")
+    upload_to_play_store
+  end
+  lane :build do
+  # Build your Flutter application
+  sh("flutter build apk --release")
+  end
+  
+  lane :dependencies do
+  # Change directory to the project root where `flutter` command is available
+  Dir.chdir("../..") do
+    # Verify that we're in the correct directory
+    sh("pwd")
+    # Run flutter pub get to fetch the dependencies
+    sh("flutter pub get")
+  end
+end
+  
+ 
+desc "Distribute the APK to App Center"
+  lane :distribute do
+    # Change directory to the project root where `flutter` command is available
+    Dir.chdir("../..") do
+      # Define the path to the generated APK
+      apk_path = 'build/app/outputs/flutter-apk/app-release.apk'
+      
+      # Define the tag using build number, branch, or commit ID
+      tag_name = "v#{ENV['BUILD_NUMBER']}-#{ENV['BRANCH_NAME'] || 'main'}-#{ENV['COMMIT_ID']&.slice(0, 7)}"
+
+      # Check if APK exists before distributing
+      if File.exist?(apk_path)
+        puts "APK found at #{apk_path}. Proceeding with distribution."
+        puts "Distributing APK with tag: #{tag_name}"
+
+        # App Center distribution action
+        appstore_upload(
+          api_token: '79aabd068b99a4b35b3688e39b1a69ff6eec38e6', # Use a credentials ID for security
+          owner_name: 'sghaier-fss.u-sfax.tn',
+          app_name: 'flutter-app',
+          file: apk_path,
+          distribution_groups: 'flutter-app',
+          release_notes: "Branch: #{ENV['BRANCH_NAME'] || 'main'} - Build #{ENV['BUILD_NUMBER']} - Commit #{ENV['COMMIT_ID']&.slice(0, 7)}"
+        )
+      else
+        puts "APK not found at #{apk_path}. Distribution aborted."
+      end
+    end
+  end
+
+
+end
