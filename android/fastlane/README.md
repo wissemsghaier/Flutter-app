@@ -45,7 +45,7 @@ Deploy a new version to the Google Play
 [bundle exec] fastlane android build
 ```
 
-
+Build the APK with specified build name and number
 
 ### android dependencies
 

@@ -8,3 +8,7 @@ gem 'fastlane-plugin-appcenter'
 gem 'fastlane-plugin-appcenter'
 gem 'fastlane-plugin-appcenter'
 gem 'fastlane-plugin-appcenter'
+# fastlane/Pluginfile
+plugins {
+  appcenter
+}

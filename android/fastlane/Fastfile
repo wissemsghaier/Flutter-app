@@ -21,6 +21,7 @@ platform :android do
     Dir.chdir("../..") do
       # Verify that we're in the correct directory
       sh("pwd")
+      sh("ls -la")
       # Run the Flutter tests
       sh("flutter test")
     end
@@ -42,13 +43,26 @@ platform :android do
   end
   
   
-  lane :build do
+  desc "Build the APK with specified build name and number"
+lane :build do
   # Change directory to the project root where `flutter` command is available
   Dir.chdir("../..") do
     # Print the current working directory to verify
     sh("pwd")
-    # Build your Flutter application
-    sh("flutter build apk --release")
+
+    # Define build name and number (you can set these as environment variables or hardcode them)
+    buildName = ENV['BUILD_NAME'] || 'main'  # Default to '1.0.0' if not set
+    buildNumber = ENV['BUILD_NUMBER'] || '1'  # Default to '1' if not set
+
+    # Build your Flutter application with specific build name and number
+    sh """
+      flutter build apk --release \
+      --build-name=#{buildName} \
+      --build-number=#{buildNumber}
+    """
+
+    # Check if APK is generated
+    sh "ls -la build/app/outputs/flutter-apk"
   end
 end
 
@@ -65,34 +79,40 @@ end
   
  
 desc "Distribute the APK to App Center"
-  lane :distribute do
-    # Change directory to the project root where `flutter` command is available
-    Dir.chdir("../..") do
-      # Define the path to the generated APK
-      apk_path = 'build/app/outputs/flutter-apk/app-release.apk'
-      
-      # Define the tag using build number, branch, or commit ID
-      tag_name = "v#{ENV['BUILD_NUMBER']}-#{ENV['BRANCH_NAME'] || 'main'}-#{ENV['COMMIT_ID']&.slice(0, 7)}"
+lane :distribute do
+  # Change directory to the project root where `flutter` command is available
+  Dir.chdir("../..") do
+    # Print the directory contents and check the APK directory for debugging
+    puts `pwd`
+    puts `ls -al build/app/outputs/flutter-apk/`
 
-      # Check if APK exists before distributing
-      if File.exist?(apk_path)
-        puts "APK found at #{apk_path}. Proceeding with distribution."
-        puts "Distributing APK with tag: #{tag_name}"
+    # Define the absolute path to the generated APK
+    apk_path = File.expand_path('build/app/outputs/flutter-apk/app-release.apk')
 
-        # App Center distribution action
-        appstore_upload(
-          api_token: '79aabd068b99a4b35b3688e39b1a69ff6eec38e6', # Use a credentials ID for security
-          owner_name: 'sghaier-fss.u-sfax.tn',
-          app_name: 'flutter-app',
-          file: apk_path,
-          distribution_groups: 'flutter-app',
-          release_notes: "Branch: #{ENV['BRANCH_NAME'] || 'main'} - Build #{ENV['BUILD_NUMBER']} - Commit #{ENV['COMMIT_ID']&.slice(0, 7)}"
-        )
-      else
-        puts "APK not found at #{apk_path}. Distribution aborted."
-      end
+    # Define the tag without commit, branch, and pipeline number
+    tag_name = "v#{ENV['BUILD_NUMBER'] || '0'}-#{ENV['BRANCH_NAME'] || 'main'}-#{ENV['COMMIT_ID']&.slice(0, 7)}"
+
+    # Check if APK exists before distributing
+    if File.exist?(apk_path)
+      puts "APK found at #{apk_path}. Proceeding with distribution."
+      puts "Distributing APK with tag: #{tag_name}"
+
+      # App Center distribution action
+      appcenter_upload(
+        api_token: '79aabd068b99a4b35b3688e39b1a69ff6eec38e6',
+        owner_name: 'sghaier-fss.u-sfax.tn',
+        app_name: 'flutter-app',
+        file: apk_path,
+        release_notes: "Branch: #{ENV['BRANCH_NAME'] || 'main'} - Build #{ENV['BUILD_NUMBER'] || '0'} - Commit #{ENV['COMMIT_ID']&.slice(0, 7)}"
+      )
+    else
+      puts "APK not found at #{apk_path}. Distribution aborted."
     end
   end
+end
+
+
+
 
 
 end
