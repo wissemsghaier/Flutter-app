@@ -40,10 +40,18 @@ platform :android do
     gradle(task: "clean assembleRelease")
     upload_to_play_store
   end
+  
+  
   lane :build do
-  # Build your Flutter application
-  sh("flutter build apk --release")
+  # Change directory to the project root where `flutter` command is available
+  Dir.chdir("../..") do
+    # Print the current working directory to verify
+    sh("pwd")
+    # Build your Flutter application
+    sh("flutter build apk --release")
   end
+end
+
   
   lane :dependencies do
   # Change directory to the project root where `flutter` command is available
