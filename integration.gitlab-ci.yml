@@ -1,7 +1,6 @@
 stages:
   - checkout
 
-
 variables:
   NEXUS_CREDENTIALS_ID: 'nexus-jenkins'
   NEXUS_URL: 'https://nexus.u-cloudsolutions.xyz'
