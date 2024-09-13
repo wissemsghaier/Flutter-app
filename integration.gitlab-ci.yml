@@ -27,5 +27,4 @@ checkout:
     - echo "Branch Name: ${BRANCH_NAME}"
     - pwd
     - ls -la
-  only:
-    - branches
+
