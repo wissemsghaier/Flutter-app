@@ -19,7 +19,13 @@ checkout:
   tags:
     - shell
   script:
-    - echo "Checking out the repository"
-    - git rev-parse --short HEAD > commit_hash.txt
-    - export COMMIT_ID=$(cat commit_hash.txt)
+    - export BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+    - export COMMIT_ID=$(git rev-parse --short HEAD)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
+    - echo "Commit Hash: ${COMMIT_ID}"
+    - echo "Zip File Name: ${ZIP_FILE_NAME}"
+    - echo "Branch Name: ${BRANCH_NAME}"
+    - pwd
+    - ls -la
+  only:
+    - branches
