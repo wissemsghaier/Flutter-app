@@ -31,8 +31,5 @@ fetch_Packages:
   tags:
     - shell
   script:
-    - git config --global --add safe.directory /opt/flutter
-    - export PUB_CACHE=${PUB_CACHE}
-    - flutter --version
     - flutter pub get
 
