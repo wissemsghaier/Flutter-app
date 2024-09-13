@@ -19,7 +19,6 @@ checkout:
   tags:
     - shell
   script:
-    - export BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
     - export COMMIT_ID=$(git rev-parse --short HEAD)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
     - echo "Commit Hash: ${COMMIT_ID}"
