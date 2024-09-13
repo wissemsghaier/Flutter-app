@@ -31,5 +31,6 @@ fetch_Packages:
   tags:
     - shell
   script:
+    - sudo chown -R $(whoami) /opt/flutter
     - flutter pub get
 
