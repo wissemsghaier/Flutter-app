@@ -26,7 +26,4 @@ checkout:
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
     - echo "Branch Name: $BRANCH_NAME"
     - echo "ZIP File Name: $ZIP_FILE_NAME"
-  rules:
-    - if: '$BRANCH_NAME'
-      when: always
 
