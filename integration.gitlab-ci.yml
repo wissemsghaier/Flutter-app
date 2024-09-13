@@ -1,0 +1,45 @@
+stages:
+  - checkout
+  - fetch_packages
+
+variables:
+  NEXUS_CREDENTIALS_ID: 'nexus-jenkins'
+  NEXUS_URL: 'https://nexus.u-cloudsolutions.xyz'
+  NEXUS_REPOSITORY: 'student-repository'
+  GROUP_ID: 'com.artificial.Flutter'
+  ARTIFACT_ID: 'project-flutter'
+  CHECKOUT_DIR: 'project-checkout-dir'
+  BRANCH_NAME: 'main'
+  COMMIT_ID: ''
+  ZIP_FILE_NAME: ''
+  PUB_CACHE: '/home/flutteruser/.pub-cache'
+
+checkout_code:
+  stage: checkout
+  script:
+
+    - export BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+    - export COMMIT_ID=$(git rev-parse --short HEAD)
+    - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
+    - echo "Commit Hash: ${COMMIT_ID}"
+    - echo "Zip File Name: ${ZIP_FILE_NAME}"
+    - echo "Branch Name: ${BRANCH_NAME}"
+    - pwd
+    - ls -la
+  only:
+    - branches
+    
+    
+    
+    fetch_packages:
+  stage: fetch_packages
+  image: '127.0.1.1:10001/repository/docker-repo/flutter-android-image:latest'
+  script:
+    - mkdir -p ${CHECKOUT_DIR}
+    - cd ${CHECKOUT_DIR}
+    - git config --global --add safe.directory /opt/flutter
+    - export PUB_CACHE=${PUB_CACHE}
+    - flutter --version
+    - flutter pub get
+  only:
+    - branches

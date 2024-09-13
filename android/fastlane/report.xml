@@ -5,24 +5,12 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000188562">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000182805">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: pwd" time="0.004357931">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="2: 
-      flutter build apk --release       --build-name=main       --build-number=1
-    " time="6.734312241">
-        
-      </testcase>
-    
-      
-      <testcase classname="fastlane.lanes" name="3: ls -la build/app/outputs/flutter-apk" time="0.009432035">
+      <testcase classname="fastlane.lanes" name="1: appcenter_upload" time="4.502608223">
         
       </testcase>
     
