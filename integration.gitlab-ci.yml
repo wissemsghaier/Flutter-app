@@ -29,6 +29,8 @@ checkout:
 fetch_Packages:
   stage: fetch_Packages
   image: '127.0.1.1:10001/repository/docker-repo/flutter-android-image:latest'
+  tags:
+    - shell
   script:
     - git config --global --add safe.directory /opt/flutter
     - export PUB_CACHE=${PUB_CACHE}
