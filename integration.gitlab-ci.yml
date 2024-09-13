@@ -28,7 +28,6 @@ checkout:
 
 fetch_Packages:
   stage: fetch_Packages
-  image: '127.0.1.1:10001/repository/docker-repo/flutter-android-image:latest'
   tags:
     - shell
   script:
