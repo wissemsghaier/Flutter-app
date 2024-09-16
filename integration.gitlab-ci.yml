@@ -76,6 +76,8 @@ build:
 
 distribute_apk:
   stage: distribute
+  tags:
+    - docker-flutter
   script:
     - |
       # Générer le tag basé sur le numéro de build, la branche ou l'ID de commit
@@ -91,6 +93,7 @@ distribute_apk:
               "distributionGroups": "'${DISTRIBUTION_GROUP}'",
               "releaseNotes": "Branch: '${CI_COMMIT_REF_NAME}' - Build ${CI_PIPELINE_IID} - Commit ${COMMIT_ID}"
             }'
+  
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
