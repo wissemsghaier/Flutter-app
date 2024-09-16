@@ -73,12 +73,14 @@ package:
     - flutter
   script:
     - echo "Cleaning up old ZIP files..."
-    - rm -f artifact-*.zip || true
+    - rm -f artifact-*.zip
     - echo "Packaging project..."
-    - ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
+    - COMMIT_ID=$(git rev-parse --short HEAD)
+    - ZIP_FILE_NAME="artifact-${COMMIT_ID}.zip"
     - echo "Packaging project as ${ZIP_FILE_NAME}..."
-    - zip -r ${ZIP_FILE_NAME} . || true
+    - zip -r ${ZIP_FILE_NAME} .
     - ls -l ${ZIP_FILE_NAME}
+
   artifacts:
     paths:
       - artifact-*.zip
