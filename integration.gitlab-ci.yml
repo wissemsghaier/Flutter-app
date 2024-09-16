@@ -1,6 +1,8 @@
 stages:
   - checkout
   - fetch_Packages
+  - build
+  - test
 
 variables:
   NEXUS_CREDENTIALS_ID: 'nexus-jenkins'
