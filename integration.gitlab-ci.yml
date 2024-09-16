@@ -5,6 +5,7 @@ stages:
   - build
   - package
   - upload
+  - distribute
 
 variables:
   NEXUS_CREDENTIALS_ID: 'nexus-jenkins'
