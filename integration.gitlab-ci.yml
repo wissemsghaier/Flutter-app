@@ -12,12 +12,8 @@ variables:
   NEXUS_REPOSITORY: 'student-repository'
   GROUP_ID: 'com.artificial.Flutter'
   ARTIFACT_ID: 'project-flutter'
-  ZIP_FILE_NAME: '${ARTIFACT_ID}-${COMMIT_ID}.zip'
   BRANCH_NAME: "${CI_COMMIT_REF_NAME}"
   BUILD_NUMBER: "${CI_PIPELINE_ID}"
-  
-
-# Définir la variable de branche comme paramètre
 
 checkout:
   stage: checkout
@@ -28,7 +24,6 @@ checkout:
     - git rev-parse --short HEAD > commit_hash.txt
     - export COMMIT_ID=$(cat commit_hash.txt)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
-
 
 fetch_Packages:
   stage: fetch_Packages
@@ -44,7 +39,6 @@ test:
   script:
     - flutter test
 
-
 build:
   stage: build
   tags:
@@ -52,25 +46,21 @@ build:
   script:
     - flutter build apk --release --build-name="${BRANCH_NAME}" --build-number="${BUILD_NUMBER}"
 
-
-
 package:
   stage: package
   tags:
     - shell
   script:
     - echo "Cleaning up old ZIP files..."
-    - rm -f artifact-*.zip
+    - rm -f artifact-*.zip || true
     - echo "Packaging project..."
-    - COMMIT_ID=$(git rev-parse --short HEAD)
     - ZIP_FILE_NAME="artifact-${COMMIT_ID}.zip"
     - echo "Packaging project as ${ZIP_FILE_NAME}..."
-    - zip -r ${ZIP_FILE_NAME} .
+    - zip -r ${ZIP_FILE_NAME} . || true
     - ls -l ${ZIP_FILE_NAME}
   artifacts:
     paths:
       - artifact-*.zip
-
 
 upload:
   stage: upload
@@ -78,14 +68,14 @@ upload:
     - shell
   script:
     - echo "Determining commit ID..."
-    - COMMIT_ID=$(git rev-parse --short HEAD)
     - ZIP_FILE_NAME="artifact-${COMMIT_ID}.zip"
     - echo "Uploading ${ZIP_FILE_NAME} to Nexus..."
     - UPLOAD_URL="${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${GROUP_ID//./\/}/${ARTIFACT_ID}/${COMMIT_ID}/${ZIP_FILE_NAME}"
     - pwd  # Print working directory
     - find . -name "*.zip"  # Find ZIP files
     - ls -l ${ZIP_FILE_NAME}  # Verify file existence
-    - curl -u wissem:3FqNnJ6XzF --upload-file "${ZIP_FILE_NAME}" "${UPLOAD_URL}"
+    - curl -u ${NEXUS_CREDENTIALS_ID} --upload-file "${ZIP_FILE_NAME}" "${UPLOAD_URL}"
+
 
 
 
