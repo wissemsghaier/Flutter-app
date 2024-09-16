@@ -1,6 +1,13 @@
+image: 54.38.185.102:10001/repository/docker-repo/flutter_fastlane_image:latest
+
+
+
+
 stages:
   - checkout
   - fetch_Packages
+  - build
+  - test 
 
 variables:
   NEXUS_CREDENTIALS_ID: 'nexus-jenkins'
@@ -12,7 +19,16 @@ variables:
   BRANCH_NAME: 'main'
   COMMIT_ID: ''
   ZIP_FILE_NAME: ''
-  PUB_CACHE: '/home/flutteruser/.pub-cache'
+  FLUTTER_HOME: "/opt/flutter"
+  ANDROID_SDK_ROOT: "/opt/android-sdk"
+  PATH: "$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
+
+
+before_script:
+  # Check Flutter installation and setup project dependencies
+  - flutter doctor -v
+  - flutter pub get
+  - export PATH="$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
 
 checkout:
   stage: checkout
@@ -34,3 +50,18 @@ fetch_Packages:
     - sudo chown -R $(whoami) /opt/flutter
     - flutter pub get
 
+
+
+build:
+  stage: build
+  script:
+    - flutter build apk --release
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-release.apk
+
+
+test:
+  stage: test
+  script:
+    - flutter test
