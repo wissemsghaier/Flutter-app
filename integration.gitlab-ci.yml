@@ -121,11 +121,12 @@ distribute:
     - tagName="v${CI_PIPELINE_ID}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
     - echo "APK found at $apkPath. Proceeding with distribution."
     - echo "Distributing APK with tag: $tagName"
-    - curl -F "ipa=@${apkPath}" \
+    - >
+      curl -F "ipa=@${apkPath}" \
            -F "release_notes=Branch: ${CI_COMMIT_REF_NAME} - Build ${CI_PIPELINE_ID} - Commit ${CI_COMMIT_SHORT_SHA}" \
            -F "distribution_group=flutter-app" \
            -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
            https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads
   rules:
-    - if: '$BRANCH_NAME'
+    - if: '$CI_COMMIT_REF_NAME'
       when: always
