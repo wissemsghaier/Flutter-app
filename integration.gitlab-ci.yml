@@ -120,8 +120,6 @@ distribute_apk:
         echo "Erreur: APK non trouvé à ${APK_PATH}. Distribution annulée."
         exit 1
       fi
-  only:
-    - main
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
