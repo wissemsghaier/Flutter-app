@@ -47,7 +47,9 @@ fetch_Packages:
   tags:
     - docker-flutter
   script:
+    - npm install -g appcenter-cli
     - flutter pub get
+
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
