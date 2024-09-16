@@ -44,18 +44,6 @@ checkout:
       when: always
 
 
-appcenter:
-  stage: appcenter
-  tags:
-    - docker-node
-  script:
-    - npm install --location=global appcenter-cli
-    - appcenter login --token 3edceb36b2e0e43ce662d457872e265e542dd998
-    - appcenter -v
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
-      when: always
-
 
 fetch_Packages:
   stage: fetch_Packages
@@ -96,11 +84,12 @@ build:
 distribute_apk:
   stage: distribute
   tags:
-    - docker-flutter
+    - docker-node
   script:
     - |
-      echo "Logging in to App Center..."
-      appcenter login --token $APPCENTER_API_TOKEN
+      npm install --location=global appcenter-cli
+      appcenter login --token 3edceb36b2e0e43ce662d457872e265e542dd998
+      appcenter -v
       echo "Tagging APK..."
       TAG_NAME="v${BUILD_NUMBER}-${BRANCH_NAME}-${COMMIT_ID}"
       echo "Distributing APK with tag: ${TAG_NAME}"
