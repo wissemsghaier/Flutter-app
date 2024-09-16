@@ -114,15 +114,24 @@ distribute:
     - apkPath="build/app/outputs/flutter-apk/app-release.apk"
     - tagName="v${CI_PIPELINE_ID}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
     - echo "Checking for APK file at $apkPath"
-    - ls -l build/app/outputs/flutter-apk/ || true  # Affiche les fichiers dans le répertoire
+    - ls -l build/app/outputs/flutter-apk/ || true
     - |
       if [ -f "$apkPath" ]; then
         echo "APK file exists. Proceeding with distribution."
-        curl -F "ipa=@${apkPath}" \
-             -F "release_notes=Branch: ${CI_COMMIT_REF_NAME} - Build ${CI_PIPELINE_ID} - Commit ${COMMIT_ID}" \
-             -F "distribution_group=flutter-app" \
-             -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
-             https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads
+        FILE_SIZE=$(stat -c%s "$apkPath")
+        MAX_SIZE=104857600  # 100 MB in bytes
+
+        if [ "$FILE_SIZE" -le "$MAX_SIZE" ]; then
+          curl -F "ipa=@${apkPath}" \
+               -F "release_notes=Branch: ${CI_COMMIT_REF_NAME} - Build ${CI_PIPELINE_ID} - Commit ${COMMIT_ID}" \
+               -F "distribution_group=flutter-app" \
+               -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
+               https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads || \
+          (echo "Failed to upload APK file. Distribution aborted." && exit 1)
+        else
+          echo "File size exceeds the limit of $MAX_SIZE bytes. Distribution aborted."
+          exit 1
+        fi
       else
         echo "APK file does not exist at $apkPath. Distribution aborted."
         exit 1
