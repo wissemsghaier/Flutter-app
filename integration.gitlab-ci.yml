@@ -22,7 +22,7 @@ variables:
   TARGET_BRANCH: "${TARGET_BRANCH}"
 
   APK_PATH: "build/app/outputs/flutter-apk/app-release.apk"
-  APPCENTER_API_TOKEN:  "a207dec6e1f58a2d3d003b623e2c4377caee0b89" # Remplace par une variable sécurisée
+  APPCENTER_API_TOKEN: "a207dec6e1f58a2d3d003b623e2c4377caee0b89"  # Remplacer par une variable sécurisée dans GitLab CI/CD
   APP_OWNER_NAME: "sghaier-fss.u-sfax.tn"
   APP_NAME: "flutter-app"
   DISTRIBUTION_GROUP: "flutter-app"
@@ -83,17 +83,8 @@ distribute_apk:
       # Générer le tag basé sur le numéro de build, la branche ou l'ID de commit
       - tagName="v${CI_PIPELINE_ID}-${CI_COMMIT_REF_NAME}-${COMMIT_ID}"
       echo "Tag pour la distribution: ${TAG_NAME}"
-      - apkPath= "build/app/outputs/flutter-apk/app-release.apk"
-       # Vérifier si l'APK existe avant la distribution
-      - curl -X POST "https://api.appcenter.ms/v0.1/apps/${APP_OWNER_NAME}/${APP_NAME}/release_uploads" \
-        -H "Content-Type: application/json" \
-        -H "X-API-Token: ${APPCENTER_API_TOKEN}" \
-        -d '{
-              "path": "'${apkPath}'",
-              "distributionGroups": "'${DISTRIBUTION_GROUP}'",
-              "releaseNotes": "Branch: '${CI_COMMIT_REF_NAME}' - Build ${CI_PIPELINE_IID} - Commit ${COMMIT_ID}"
-            }'
-  
+      - appcenter login --token $APPCENTER_API_TOKEN
+      - appcenter distribute release -f $APK_PATH -g $DISTRIBUTION_GROUP --app $APP_OWNER_NAME/$APP_NAME
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
