@@ -22,7 +22,7 @@ variables:
   TARGET_BRANCH: "${TARGET_BRANCH}"
 
   APK_PATH: "build/app/outputs/flutter-apk/app-release.apk"
-  APPCENTER_API_TOKEN: "a207dec6e1f58a2d3d003b623e2c4377caee0b89"  # Remplacer par une variable sécurisée dans GitLab CI/CD
+  APPCENTER_API_TOKEN: "3edceb36b2e0e43ce662d457872e265e542dd998"  # Remplacer par une variable sécurisée dans GitLab CI/CD
   APP_OWNER_NAME: "sghaier-fss.u-sfax.tn"
   APP_NAME: "flutter-app"
   DISTRIBUTION_GROUP: "flutter-app"
