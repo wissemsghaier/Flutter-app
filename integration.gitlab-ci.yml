@@ -4,6 +4,7 @@ image: 54.38.185.102:10001/repository/docker-repo/flutter_fastlane_image:latest
 
 
 stages:
+  - checkout
   - fetch_Packages
   - build
   - test 
@@ -14,10 +15,10 @@ variables:
   NEXUS_REPOSITORY: 'student-repository'
   GROUP_ID: 'com.artificial.Flutter'
   ARTIFACT_ID: 'project-flutter'
-  CHECKOUT_DIR: 'project-checkout-dir'
   BRANCH_NAME: 'main'
   ZIP_FILE_NAME: '${ARTIFACT_ID}-${COMMIT_ID}.zip'
   COMMIT_ID: $(git rev-parse --short HEAD)
+
   FLUTTER_HOME: "/opt/flutter"
   ANDROID_SDK_ROOT: "/opt/android-sdk"
   PATH: "$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
@@ -30,6 +31,15 @@ before_script:
   - export PATH="$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
 
 
+checkout:
+  stage: checkout
+  tags:
+    - flutter
+  script:
+    - echo "Checking out the repository"
+    - git rev-parse --short HEAD > commit_hash.txt
+    - export COMMIT_ID=$(cat commit_hash.txt)
+    - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
 
 
 
@@ -37,7 +47,7 @@ before_script:
 fetch_Packages:
   stage: fetch_Packages
   tags:
-    - shell
+    - docker-flutter
   script:
     - flutter pub get
 
