@@ -1,10 +1,7 @@
-image: 54.38.185.102:10001/repository/docker-repo/flutter_fastlane_image:latest
+
 
 stages:
   - checkout
-  - fetch_Packages
-  - build
-  - test 
 
 variables:
   NEXUS_CREDENTIALS_ID: 'nexus-jenkins'
@@ -15,17 +12,7 @@ variables:
   ZIP_FILE_NAME: '${ARTIFACT_ID}-${COMMIT_ID}.zip'
   COMMIT_ID: $(git rev-parse --short HEAD)
 
-  FLUTTER_HOME: "/opt/flutter"
-  ANDROID_SDK_ROOT: "/opt/android-sdk"
-  PATH: "$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-
-before_script:
-  - apt-get update && apt-get install -y coreutils
-  - flutter doctor -v
-  - flutter pub get
-  - export PATH="$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
-
-
+  
   
 checkout:
   stage: checkout
@@ -36,33 +23,3 @@ checkout:
     - git rev-parse --short HEAD > commit_hash.txt
     - export COMMIT_ID=$(cat commit_hash.txt)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
-
-
-
-
-fetch_Packages:
-  stage: fetch_Packages
-  tags:
-    - docker-flutter
-  script:
-    - flutter pub get
-
-
-
-build:
-  stage: build
-  tags:
-    - docker-flutter
-  script:
-    - flutter build apk --release
-  artifacts:
-    paths:
-      - build/app/outputs/flutter-apk/app-release.apk
-
-
-test:
-  stage: test
-  tags:
-    - docker-flutter
-  script:
-    - flutter test
