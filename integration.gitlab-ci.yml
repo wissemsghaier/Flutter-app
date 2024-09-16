@@ -1,4 +1,3 @@
-
 stages:
   - checkout
   - fetch_Packages
@@ -31,3 +30,22 @@ fetch_Packages:
     - docker-flutter
   script:
     - flutter pub get
+
+
+build:
+  stage: build
+  tags:
+    - docker-flutter
+  script:
+    - flutter build apk --release
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-release.apk
+
+
+test:
+  stage: test
+  tags:
+    - docker-flutter
+  script:
+    - flutter test
