@@ -4,7 +4,6 @@ image: 54.38.185.102:10001/repository/docker-repo/flutter_fastlane_image:latest
 
 
 stages:
-  - checkout
   - fetch_Packages
   - build
   - test 
@@ -30,15 +29,7 @@ before_script:
   - flutter pub get
   - export PATH="$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
 
-checkout:
-  stage: checkout
-  tags:
-    - shell
-  script:
-    - echo "Checking out the repository"
-    - git rev-parse --short HEAD > commit_hash.txt
-    - export COMMIT_ID=$(cat commit_hash.txt)
-    - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
+
 
 
 
