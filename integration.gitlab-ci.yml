@@ -47,6 +47,7 @@ fetch_Packages:
   tags:
     - docker-flutter
   script:
+    -  apt-get install -y nodejs
     - npm install -g appcenter-cli
     - flutter pub get
 
