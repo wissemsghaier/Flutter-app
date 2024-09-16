@@ -85,9 +85,20 @@ distribute_apk:
     - docker-node
   script:
     - |
+      # Installer l'appcenter CLI globalement
       npm install --location=global appcenter-cli
+      
+      # Se connecter à App Center avec le token API
       appcenter login --token 3edceb36b2e0e43ce662d457872e265e542dd998
+      
+      # Vérifier la version d'appcenter-cli
       appcenter -v
+      
+      # Générer le tag avec le numéro de build, le nom de la branche, et le commit ID
+      BUILD_NUMBER="${CI_PIPELINE_ID}"
+      BRANCH_NAME="${CI_COMMIT_REF_NAME}"
+      COMMIT_ID=$(git rev-parse --short HEAD)
+      
       echo "Tagging APK..."
       TAG_NAME="v${BUILD_NUMBER}-${BRANCH_NAME}-${COMMIT_ID}"
       echo "Distributing APK with tag: ${TAG_NAME}"
