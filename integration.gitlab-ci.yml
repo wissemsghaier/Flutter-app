@@ -45,9 +45,8 @@ checkout:
 fetch_Packages:
   stage: fetch_Packages
   tags:
-    - flutter
+    - docker-flutter
   script:
-    - sudo chown -R $(whoami) /opt/flutter
     - flutter pub get
 
 
@@ -55,7 +54,7 @@ fetch_Packages:
 build:
   stage: build
   tags:
-    - flutter
+    - docker-flutter
   script:
     - flutter build apk --release
   artifacts:
@@ -66,6 +65,6 @@ build:
 test:
   stage: test
   tags:
-    - flutter
+    - docker-flutter
   script:
     - flutter test
