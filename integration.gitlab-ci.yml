@@ -13,8 +13,13 @@ variables:
   NEXUS_REPOSITORY: 'student-repository'
   GROUP_ID: 'com.artificial.Flutter'
   ARTIFACT_ID: 'project-flutter'
+  ZIP_FILE_NAME: '${ARTIFACT_ID}-${COMMIT_ID}.zip'
+  COMMIT_ID: $(git rev-parse --short HEAD)
+
   BRANCH_NAME: "${CI_COMMIT_REF_NAME}"
   BUILD_NUMBER: "${CI_PIPELINE_ID}"
+
+  TARGET_BRANCH: "${TARGET_BRANCH}"
 
 checkout:
   stage: checkout
@@ -26,7 +31,7 @@ checkout:
     - export COMMIT_ID=$(cat commit_hash.txt)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
   rules:
-    - if: '$CI_COMMIT_REF_NAME !~ /^skip\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
 
 fetch_Packages:
@@ -36,7 +41,7 @@ fetch_Packages:
   script:
     - flutter pub get
   rules:
-    - if: '$CI_COMMIT_REF_NAME !~ /^skip\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
 
 test:
@@ -46,7 +51,7 @@ test:
   script:
     - flutter test
   rules:
-    - if: '$CI_COMMIT_REF_NAME !~ /^skip\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
 
 build:
@@ -59,18 +64,18 @@ build:
     paths:
       - build/app/outputs/flutter-apk/app-release.apk
   rules:
-    - if: '$CI_COMMIT_REF_NAME !~ /^skip\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
 
 package:
   stage: package
   tags:
-    - shell
+    - flutter
   script:
     - echo "Cleaning up old ZIP files..."
     - rm -f artifact-*.zip || true
     - echo "Packaging project..."
-    - ZIP_FILE_NAME="artifact-${COMMIT_ID}.zip"
+    - ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
     - echo "Packaging project as ${ZIP_FILE_NAME}..."
     - zip -r ${ZIP_FILE_NAME} . || true
     - ls -l ${ZIP_FILE_NAME}
@@ -78,15 +83,17 @@ package:
     paths:
       - artifact-*.zip
   rules:
-    - if: '$CI_COMMIT_REF_NAME !~ /^skip\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
 
 upload:
   stage: upload
   tags:
-    - shell
+    - flutter
   script:
     - echo "Determining commit ID..."
+    - COMMIT_ID=$(git rev-parse --short HEAD)
+
     - ZIP_FILE_NAME="artifact-${COMMIT_ID}.zip"
     - echo "Uploading ${ZIP_FILE_NAME} to Nexus..."
     - UPLOAD_URL="${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${GROUP_ID//./\/}/${ARTIFACT_ID}/${COMMIT_ID}/${ZIP_FILE_NAME}"
@@ -95,7 +102,7 @@ upload:
     - ls -l ${ZIP_FILE_NAME}  # Verify file existence
     - curl -u ${NEXUS_CREDENTIALS_ID} --upload-file "${ZIP_FILE_NAME}" "${UPLOAD_URL}"
   rules:
-    - if: '$CI_COMMIT_REF_NAME !~ /^skip\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
 
 distribute:
@@ -122,7 +129,6 @@ distribute:
         exit 1
       fi
   rules:
-    - if: '$CI_COMMIT_REF_NAME !~ /^skip\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
-
 
