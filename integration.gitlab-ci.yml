@@ -33,7 +33,7 @@ before_script:
 checkout:
   stage: checkout
   tags:
-    - shell
+    - flutter
   script:
     - echo "Checking out the repository"
     - git rev-parse --short HEAD > commit_hash.txt
@@ -45,7 +45,7 @@ checkout:
 fetch_Packages:
   stage: fetch_Packages
   tags:
-    - shell
+    - flutter
   script:
     - sudo chown -R $(whoami) /opt/flutter
     - flutter pub get
@@ -55,7 +55,7 @@ fetch_Packages:
 build:
   stage: build
   tags:
-    - shell
+    - flutter
   script:
     - flutter build apk --release
   artifacts:
@@ -66,6 +66,6 @@ build:
 test:
   stage: test
   tags:
-    - shell
+    - flutter
   script:
     - flutter test
