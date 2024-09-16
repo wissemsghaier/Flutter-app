@@ -1,3 +1,4 @@
+image: 54.38.185.102:10001/repository/docker-repo/flutter_fastlane_image:latest
 
 stages:
   - checkout
