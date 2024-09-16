@@ -47,7 +47,7 @@ checkout:
 appcenter:
   stage: appcenter
   tags:
-    - docker-flutter
+    - docker-node
     - docker-flutter
   script:
     - npm install --location=global appcenter-cli
@@ -63,7 +63,6 @@ fetch_Packages:
   tags:
     - docker-flutter
   script:
-    - appcenter login --token 3edceb36b2e0e43ce662d457872e265e542dd998
     - flutter pub get
 
   rules:
