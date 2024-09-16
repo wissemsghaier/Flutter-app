@@ -48,11 +48,10 @@ appcenter:
   stage: appcenter
   tags:
     - docker-node
-    - docker-flutter
   script:
     - npm install --location=global appcenter-cli
     - appcenter login --token 3edceb36b2e0e43ce662d457872e265e542dd998
-    - flutter pub get
+    - appcenter -v
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
@@ -64,6 +63,7 @@ fetch_Packages:
     - docker-flutter
   script:
     - flutter pub get
+    - appcenter -v
 
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
