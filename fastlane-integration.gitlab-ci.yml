@@ -3,16 +3,17 @@ stages:
   - fetch_Packages
   - test
   - build
+  - distribute
   - package
   - upload
-  - distribute
+  
 
 variables:
   NEXUS_CREDENTIALS_ID: 'nexus-jenkins'
   NEXUS_URL: 'https://nexus.u-cloudsolutions.xyz'
   NEXUS_REPOSITORY: 'student-repository'
   GROUP_ID: 'com.artificial.Flutter'
-  ARTIFACT_ID: 'project-flutter'
+  ARTIFACT_ID: 'artifact'
   ZIP_FILE_NAME: '${ARTIFACT_ID}-${COMMIT_ID}.zip'
   COMMIT_ID: $(git rev-parse --short HEAD)
 
@@ -21,18 +22,28 @@ variables:
 
   TARGET_BRANCH: "${TARGET_BRANCH}"
 
+  APK_PATH: "build/app/outputs/flutter-apk/app-release.apk"
+  APPCENTER_API_TOKEN: "3edceb36b2e0e43ce662d457872e265e542dd998"  # Remplacer par une variable sécurisée dans GitLab CI/CD
+  APP_OWNER_NAME: "sghaier-fss.u-sfax.tn"
+  APP_NAME: "flutter-app"
+  DISTRIBUTION_GROUP: "flutter-app"
+
+
 checkout:
   stage: checkout
   tags:
     - flutter
   script:
     - echo "Checking out the repository"
+
     - git rev-parse --short HEAD > commit_hash.txt
     - export COMMIT_ID=$(cat commit_hash.txt)
+    - export COMMIT_ID=$(git rev-parse --short HEAD)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
+
 
 fetch_Packages:
   stage: fetch_Packages
@@ -69,6 +80,20 @@ build:
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
+
+distribute:
+  stage: distribute
+  tags:
+    - docker-flutter
+  dependencies:
+    - build
+  script:
+    - cd android  # Entrer dans le répertoire android 
+    - fastlane android distribute
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
+      when: always
+
 
 package:
   stage: package
@@ -109,15 +134,4 @@ upload:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
 
-distribute:
-  stage: distribute
-  tags:
-    - docker-flutter
-  dependencies:
-    - build
-  script:
-    - cd android  # Entrer dans le répertoire android 
-    - fastlane android distribute
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
-      when: always
+
