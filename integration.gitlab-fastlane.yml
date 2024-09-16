@@ -1,0 +1,123 @@
+stages:
+  - checkout
+  - fetch_Packages
+  - test
+  - build
+  - package
+  - upload
+  - distribute
+
+variables:
+  NEXUS_CREDENTIALS_ID: 'nexus-jenkins'
+  NEXUS_URL: 'https://nexus.u-cloudsolutions.xyz'
+  NEXUS_REPOSITORY: 'student-repository'
+  GROUP_ID: 'com.artificial.Flutter'
+  ARTIFACT_ID: 'project-flutter'
+  ZIP_FILE_NAME: '${ARTIFACT_ID}-${COMMIT_ID}.zip'
+  COMMIT_ID: $(git rev-parse --short HEAD)
+
+  BRANCH_NAME: "${CI_COMMIT_REF_NAME}"
+  BUILD_NUMBER: "${CI_PIPELINE_ID}"
+
+  TARGET_BRANCH: "${TARGET_BRANCH}"
+
+checkout:
+  stage: checkout
+  tags:
+    - flutter
+  script:
+    - echo "Checking out the repository"
+    - git rev-parse --short HEAD > commit_hash.txt
+    - export COMMIT_ID=$(cat commit_hash.txt)
+    - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
+      when: always
+
+fetch_Packages:
+  stage: fetch_Packages
+  tags:
+    - docker-flutter
+  script:
+    - cd android  # Entrer dans le répertoire android
+    - fastlane android dependencies  # Exécuter la commande fastlane à l'intérieur du répertoire android
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
+      when: always
+
+test:
+  stage: test
+  tags:
+    - docker-flutter
+  script:
+    - cd android  # Entrer dans le répertoire android
+    - fastlane android test  # Exécuter la commande fastlane à l'intérieur du répertoire android
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
+      when: always
+
+build:
+  stage: build
+  tags:
+    - docker-flutter
+  script:
+    - cd android  # Entrer dans le répertoire android
+    - fastlane android build
+  artifacts:
+    paths:
+      - build/app/outputs/flutter-apk/app-release.apk
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
+      when: always
+
+package:
+  stage: package
+  tags:
+    - flutter
+  script:
+    - echo "Cleaning up old ZIP files..."
+    - rm -f artifact-*.zip
+    - echo "Packaging project..."
+    - COMMIT_ID=$(git rev-parse --short HEAD)
+    - ZIP_FILE_NAME="artifact-${COMMIT_ID}.zip"
+    - echo "Packaging project as ${ZIP_FILE_NAME}..."
+    - zip -r ${ZIP_FILE_NAME} .
+    - ls -l ${ZIP_FILE_NAME}
+
+  artifacts:
+    paths:
+      - artifact-*.zip
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
+      when: always
+
+upload:
+  stage: upload
+  tags:
+    - flutter
+  script:
+    - echo "Determining commit ID..."
+    - COMMIT_ID=$(git rev-parse --short HEAD)
+    - ZIP_FILE_NAME="project-flutter-${COMMIT_ID}.zip"
+    - echo "Uploading ${ZIP_FILE_NAME} to Nexus..."
+    - UPLOAD_URL="${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${GROUP_ID//./\/}/${ARTIFACT_ID}/${COMMIT_ID}/${ZIP_FILE_NAME}"
+    - pwd  # Print working directory
+    - find . -name "*.zip"  # Find ZIP files
+    - ls -l ${ZIP_FILE_NAME}  # Verify file existence
+    - curl -u ${NEXUS_CREDENTIALS_ID} --upload-file "${ZIP_FILE_NAME}" "${UPLOAD_URL}"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
+      when: always
+
+distribute:
+  stage: distribute
+  tags:
+    - docker-flutter
+  dependencies:
+    - build
+  script:
+    - cd android  # Entrer dans le répertoire android 
+    - fastlane android distribute
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
+      when: always
