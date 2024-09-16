@@ -17,8 +17,8 @@ variables:
   ARTIFACT_ID: 'project-flutter'
   CHECKOUT_DIR: 'project-checkout-dir'
   BRANCH_NAME: 'main'
-  COMMIT_ID: ''
-  ZIP_FILE_NAME: ''
+  ZIP_FILE_NAME: '${ARTIFACT_ID}-${COMMIT_ID}.zip'
+  COMMIT_ID: $(git rev-parse --short HEAD)
   FLUTTER_HOME: "/opt/flutter"
   ANDROID_SDK_ROOT: "/opt/android-sdk"
   PATH: "$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
@@ -33,12 +33,13 @@ before_script:
 checkout:
   stage: checkout
   tags:
-    - flutter
+    - shell
   script:
     - echo "Checking out the repository"
     - git rev-parse --short HEAD > commit_hash.txt
     - export COMMIT_ID=$(cat commit_hash.txt)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
+
 
 
 
