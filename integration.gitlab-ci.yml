@@ -77,5 +77,21 @@ upload:
     - curl -u ${NEXUS_CREDENTIALS_ID} --upload-file "${ZIP_FILE_NAME}" "${UPLOAD_URL}"
 
 
-
+distribute:
+  stage: distribute
+  tags:
+    - docker-flutter
+  dependencies:
+    - build
+  script:
+    - apkPath="build/app/outputs/flutter-apk/app-release.apk"
+    - tagName="v${CI_PIPELINE_ID}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
+    - |
+      [ -f "$apkPath" ] && echo "APK file exists. Proceeding with distribution." && \
+      curl -F "ipa=@${apkPath}" \
+           -F "release_notes=Branch: ${CI_COMMIT_REF_NAME} - Build ${CI_PIPELINE_ID} - Commit ${CI_COMMIT_SHORT_SHA}" \
+           -F "distribution_group=flutter-app" \
+           -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
+           https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads || \
+      (echo "APK file does not exist at $apkPath. Distribution aborted." && exit 1)
 
