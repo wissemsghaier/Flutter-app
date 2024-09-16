@@ -23,8 +23,8 @@ variables:
   TARGET_BRANCH: "${TARGET_BRANCH}"
 
   APK_PATH: "build/app/outputs/flutter-apk/app-release.apk"
-  APPCENTER_API_TOKEN: "a207dec6e1f58a2d3d003b623e2c4377caee0b89" # Remplace par une variable sécurisée
-  OWNER_NAME: "sghaier-fss.u-sfax.tn"
+  APPCENTER_API_TOKEN:  "a207dec6e1f58a2d3d003b623e2c4377caee0b89" # Remplace par une variable sécurisée
+  APP_OWNER_NAME: "sghaier-fss.u-sfax.tn"
   APP_NAME: "flutter-app"
   DISTRIBUTION_GROUP: "flutter-app"
 
@@ -66,6 +66,9 @@ build:
   tags:
     - docker-flutter
   script:
+    - echo "Starting build for branch: ${CI_COMMIT_REF_NAME}"
+    - echo "Build name: ${CI_COMMIT_REF_NAME}"
+    - echo "Build number: ${CI_PIPELINE_IID}"
     - flutter build apk --release --build-name="${BRANCH_NAME}" --build-number="${BUILD_NUMBER}"
   artifacts:
     paths:
@@ -81,45 +84,16 @@ distribute_apk:
       # Générer le tag basé sur le numéro de build, la branche ou l'ID de commit
       - tagName="v${CI_PIPELINE_ID}-${CI_COMMIT_REF_NAME}-${COMMIT_ID}"
       echo "Tag pour la distribution: ${TAG_NAME}"
-
+      - apkPath= "build/app/outputs/flutter-apk/app-release.apk"
        # Vérifier si l'APK existe avant la distribution
-      if [ -f "$APK_PATH" ]; then
-        echo "APK trouvé à ${APK_PATH}. Procédure de distribution en cours."
-
-        # Étape 1: Obtenir une URL de téléchargement en appelant l'API d'App Center
-        UPLOAD_ID=$(curl -X POST \
-          -H "X-API-Token: $APPCENTER_API_TOKEN" \
-          -H "accept: application/json" \
-          "https://api.appcenter.ms/v0.1/apps/$OWNER_NAME/$APP_NAME/release_uploads" | jq -r '.upload_id')
-
-        UPLOAD_URL=$(curl -X POST \
-          -H "X-API-Token: $APPCENTER_API_TOKEN" \
-          -H "accept: application/json" \
-          "https://api.appcenter.ms/v0.1/apps/$OWNER_NAME/$APP_NAME/release_uploads" | jq -r '.upload_url')
-
-        # Étape 2: Upload de l'APK
-        curl -F "ipa=@$APK_PATH" "$UPLOAD_URL"
-
-        # Étape 3: Finaliser le téléchargement
-        curl -X PATCH \
-          -H "X-API-Token: $APPCENTER_API_TOKEN" \
-          -H "accept: application/json" \
-          -d '{"status": "committed"}' \
-          "https://api.appcenter.ms/v0.1/apps/$OWNER_NAME/$APP_NAME/release_uploads/$UPLOAD_ID"
-
-        # Étape 4: Distribuer à un groupe de distribution
-        curl -X PATCH \
-          -H "X-API-Token: $APPCENTER_API_TOKEN" \
-          -H "accept: application/json" \
-          -H "Content-Type: application/json" \
-          -d "{\"destination_name\": \"$DISTRIBUTION_GROUP\", \"release_notes\": \"Branch: ${CI_COMMIT_REF_NAME:-main} - Build ${CI_PIPELINE_IID}\"}" \
-          "https://api.appcenter.ms/v0.1/apps/$OWNER_NAME/$APP_NAME/releases/$UPLOAD_ID"
-
-        echo "Distribution de l'APK réussie avec le tag ${TAG_NAME}"
-      else
-        echo "Erreur: APK non trouvé à ${APK_PATH}. Distribution annulée."
-        exit 1
-      fi
+      - curl -X POST "https://api.appcenter.ms/v0.1/apps/${APP_OWNER_NAME}/${APP_NAME}/release_uploads" \
+        -H "Content-Type: application/json" \
+        -H "X-API-Token: ${APPCENTER_API_TOKEN}" \
+        -d '{
+              "path": "'${apkPath}'",
+              "distributionGroups": "'${DISTRIBUTION_GROUP}'",
+              "releaseNotes": "Branch: '${CI_COMMIT_REF_NAME}' - Build ${CI_PIPELINE_IID} - Commit ${COMMIT_ID}"
+            }'
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
