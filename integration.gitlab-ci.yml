@@ -36,6 +36,8 @@ before_script:
 
 fetch_Packages:
   stage: fetch_Packages
+  tags:
+    - flutter
   script:
     - flutter pub get
 
