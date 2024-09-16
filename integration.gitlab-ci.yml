@@ -53,11 +53,7 @@ build:
   tags:
     - docker-flutter
   script:
-    
-    # Exécuter la commande de build avec les options --build-name et --build-number
-    - flutter build apk --release \
-        --build-name="${BRANCH_NAME}" \
-        --build-number="${BUILD_NUMBER}"
+    - flutter build apk --release --build-name="${BRANCH_NAME}" --build-number="${BUILD_NUMBER}"
 
 
 
