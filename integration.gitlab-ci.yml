@@ -1,6 +1,5 @@
 stages:
   - checkout
-  - appcenter
   - fetch_Packages
   - test
   - build
@@ -51,7 +50,6 @@ fetch_Packages:
     - docker-flutter
   script:
     - flutter pub get
-    - appcenter -v
 
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
