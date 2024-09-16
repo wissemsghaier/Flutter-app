@@ -28,9 +28,6 @@ checkout:
     - git rev-parse --short HEAD > commit_hash.txt
     - export COMMIT_ID=$(cat commit_hash.txt)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
-  rules:
-    - if: '$CI_COMMIT_REF_NAME'
-      when: always
 
 
 fetch_Packages:
