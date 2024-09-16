@@ -1,7 +1,7 @@
 
-
 stages:
   - checkout
+  - fetch_Packages
 
 variables:
   NEXUS_CREDENTIALS_ID: 'nexus-jenkins'
@@ -23,3 +23,11 @@ checkout:
     - git rev-parse --short HEAD > commit_hash.txt
     - export COMMIT_ID=$(cat commit_hash.txt)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
+
+
+fetch_Packages:
+  stage: fetch_Packages
+  tags:
+    - docker-flutter
+  script:
+    - flutter pub get
