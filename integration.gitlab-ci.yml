@@ -66,9 +66,7 @@ build:
   tags:
     - docker-flutter
   script:
-    - echo "Starting build for branch: ${CI_COMMIT_REF_NAME}"
-    - echo "Build name: ${CI_COMMIT_REF_NAME}"
-    - echo "Build number: ${CI_PIPELINE_IID}"
+
     - flutter build apk --release --build-name="${BRANCH_NAME}" --build-number="${BUILD_NUMBER}"
   artifacts:
     paths:
