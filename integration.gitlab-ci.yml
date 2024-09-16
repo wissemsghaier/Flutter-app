@@ -26,7 +26,7 @@ checkout:
     - export COMMIT_ID=$(cat commit_hash.txt)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME'
       when: always
 
 fetch_Packages:
@@ -36,7 +36,7 @@ fetch_Packages:
   script:
     - flutter pub get
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME'
       when: always
 
 test:
@@ -46,7 +46,7 @@ test:
   script:
     - flutter test
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME'
       when: always
 
 build:
@@ -56,7 +56,7 @@ build:
   script:
     - flutter build apk --release --build-name="${BRANCH_NAME}" --build-number="${BUILD_NUMBER}"
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME'
       when: always
 
 package:
@@ -75,7 +75,7 @@ package:
     paths:
       - artifact-*.zip
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME'
       when: always
 
 upload:
@@ -92,7 +92,7 @@ upload:
     - ls -l ${ZIP_FILE_NAME}  # Verify file existence
     - curl -u ${NEXUS_CREDENTIALS_ID} --upload-file "${ZIP_FILE_NAME}" "${UPLOAD_URL}"
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME'
       when: always
 
 distribute:
@@ -113,6 +113,6 @@ distribute:
            https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads || \
       (echo "APK file does not exist at $apkPath. Distribution aborted." && exit 1)
   rules:
-    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+    - if: '$CI_COMMIT_REF_NAME'
       when: always
 
