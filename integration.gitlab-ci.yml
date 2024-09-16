@@ -12,7 +12,6 @@ variables:
   NEXUS_REPOSITORY: 'student-repository'
   GROUP_ID: 'com.artificial.Flutter'
   ARTIFACT_ID: 'project-flutter'
-  BRANCH_NAME: 'main'
   ZIP_FILE_NAME: '${ARTIFACT_ID}-${COMMIT_ID}.zip'
   COMMIT_ID: $(git rev-parse --short HEAD)
 
@@ -21,6 +20,7 @@ variables:
   PATH: "$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
 
 before_script:
+  - apt-get update && apt-get install -y coreutils
   - flutter doctor -v
   - flutter pub get
   - export PATH="$FLUTTER_HOME/bin:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools:$PATH"
