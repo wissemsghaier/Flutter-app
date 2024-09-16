@@ -25,6 +25,9 @@ checkout:
     - git rev-parse --short HEAD > commit_hash.txt
     - export COMMIT_ID=$(cat commit_hash.txt)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+      when: always
 
 fetch_Packages:
   stage: fetch_Packages
@@ -32,6 +35,9 @@ fetch_Packages:
     - docker-flutter
   script:
     - flutter pub get
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+      when: always
 
 test:
   stage: test
@@ -39,6 +45,9 @@ test:
     - docker-flutter
   script:
     - flutter test
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+      when: always
 
 build:
   stage: build
@@ -46,6 +55,9 @@ build:
     - docker-flutter
   script:
     - flutter build apk --release --build-name="${BRANCH_NAME}" --build-number="${BUILD_NUMBER}"
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+      when: always
 
 package:
   stage: package
@@ -62,6 +74,9 @@ package:
   artifacts:
     paths:
       - artifact-*.zip
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+      when: always
 
 upload:
   stage: upload
@@ -76,7 +91,9 @@ upload:
     - find . -name "*.zip"  # Find ZIP files
     - ls -l ${ZIP_FILE_NAME}  # Verify file existence
     - curl -u ${NEXUS_CREDENTIALS_ID} --upload-file "${ZIP_FILE_NAME}" "${UPLOAD_URL}"
-
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+      when: always
 
 distribute:
   stage: distribute
@@ -90,9 +107,12 @@ distribute:
     - |
       [ -f "$apkPath" ] && echo "APK file exists. Proceeding with distribution." && \
       curl -F "ipa=@${apkPath}" \
-           -F "release_notes=Branch: ${CI_COMMIT_REF_NAME} - Build ${CI_PIPELINE_ID} - Commit ${CI_COMMIT_SHORT_SHA}" \
+           -F "release_notes=Branch: ${CI_COMMIT_REF_NAME} - Build ${CI_PIPELINE_ID} - Commit ${COMMIT_ID}" \
            -F "distribution_group=flutter-app" \
            -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
            https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads || \
       (echo "APK file does not exist at $apkPath. Distribution aborted." && exit 1)
+  rules:
+    - if: '$CI_COMMIT_REF_NAME =~ /^release\/.*$/'
+      when: always
 
