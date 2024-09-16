@@ -33,8 +33,10 @@ checkout:
     - flutter
   script:
     - echo "Checking out the repository"
+
     - git rev-parse --short HEAD > commit_hash.txt
     - export COMMIT_ID=$(cat commit_hash.txt)
+    - export COMMIT_ID=$(git rev-parse --short HEAD)
     - export ZIP_FILE_NAME="${ARTIFACT_ID}-${COMMIT_ID}.zip"
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
@@ -80,11 +82,12 @@ distribute_apk:
     - docker-flutter
   script:
     - |
-      # Générer le tag basé sur le numéro de build, la branche ou l'ID de commit
-      - tagName="v${CI_PIPELINE_ID}-${CI_COMMIT_REF_NAME}-${COMMIT_ID}"
-      echo "Tag pour la distribution: ${TAG_NAME}"
-      - appcenter login --token $APPCENTER_API_TOKEN
-      - appcenter distribute release -f $APK_PATH -g $DISTRIBUTION_GROUP --app $APP_OWNER_NAME/$APP_NAME
+      echo "Logging in to App Center..."
+      appcenter login --token $APPCENTER_API_TOKEN
+      echo "Tagging APK..."
+      TAG_NAME="v${BUILD_NUMBER}-${BRANCH_NAME}-${COMMIT_ID}"
+      echo "Distributing APK with tag: ${TAG_NAME}"
+      appcenter distribute release -f $APK_PATH -g $DISTRIBUTION_GROUP --app $APP_OWNER_NAME/$APP_NAME --release-notes "Build ${BUILD_NUMBER} - Branch ${BRANCH_NAME} - Commit ${COMMIT_ID}"
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
