@@ -22,6 +22,12 @@ variables:
 
   TARGET_BRANCH: "${TARGET_BRANCH}"
 
+  APK_PATH: "build/app/outputs/flutter-apk/app-release.apk"
+  APPCENTER_API_TOKEN: "a207dec6e1f58a2d3d003b623e2c4377caee0b89" # Remplace par une variable sécurisée
+  OWNER_NAME: "sghaier-fss.u-sfax.tn"
+  APP_NAME: "flutter-app"
+  DISTRIBUTION_GROUP: "flutter-app"
+
 checkout:
   stage: checkout
   tags:
@@ -68,50 +74,54 @@ build:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
 
-distribute:
+distribute_apk:
   stage: distribute
-  tags:
-    - docker-flutter
-  dependencies:
-    - build
   script:
-    - apk update && apk add jq  # Installation de jq
-    - apkPath="build/app/outputs/flutter-apk/app-release.apk"
-    - tagName="v${CI_PIPELINE_ID}-${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}"
-    - echo "Checking for APK file at $apkPath"
-    - ls -l build/app/outputs/flutter-apk/ || true
     - |
-      if [ -f "$apkPath" ]; then
-        echo "APK file exists. Proceeding with distribution."
-        
-        # Crée une session d'upload sur App Center
-        UPLOAD_RESPONSE=$(curl -X POST \
-          -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
-          https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads)
+      # Générer le tag basé sur le numéro de build, la branche ou l'ID de commit
+      - tagName="v${CI_PIPELINE_ID}-${CI_COMMIT_REF_NAME}-${COMMIT_ID}"
+      echo "Tag pour la distribution: ${TAG_NAME}"
 
-        UPLOAD_ID=$(echo "$UPLOAD_RESPONSE" | jq -r '.upload_id')
-        UPLOAD_URL=$(echo "$UPLOAD_RESPONSE" | jq -r '.upload_url')
+       # Vérifier si l'APK existe avant la distribution
+      if [ -f "$APK_PATH" ]; then
+        echo "APK trouvé à ${APK_PATH}. Procédure de distribution en cours."
 
-        if [ -n "$UPLOAD_URL" ]; then
-          echo "Starting multipart upload..."
-          curl -X PUT "$UPLOAD_URL" \
-            -F "ipa=@${apkPath};type=application/vnd.android.package-archive" || \
-          (echo "Failed to upload APK file. Distribution aborted." && exit 1)
+        # Étape 1: Obtenir une URL de téléchargement en appelant l'API d'App Center
+        UPLOAD_ID=$(curl -X POST \
+          -H "X-API-Token: $APPCENTER_API_TOKEN" \
+          -H "accept: application/json" \
+          "https://api.appcenter.ms/v0.1/apps/$OWNER_NAME/$APP_NAME/release_uploads" | jq -r '.upload_id')
 
-          # Finaliser l'upload sur App Center
-          curl -X PATCH \
-            -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
-            https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads/$UPLOAD_ID \
-            -d '{"status": "committed"}' || \
-          (echo "Failed to commit APK file. Distribution aborted." && exit 1)
-        else
-          echo "Failed to initiate upload. Distribution aborted."
-          exit 1
-        fi
+        UPLOAD_URL=$(curl -X POST \
+          -H "X-API-Token: $APPCENTER_API_TOKEN" \
+          -H "accept: application/json" \
+          "https://api.appcenter.ms/v0.1/apps/$OWNER_NAME/$APP_NAME/release_uploads" | jq -r '.upload_url')
+
+        # Étape 2: Upload de l'APK
+        curl -F "ipa=@$APK_PATH" "$UPLOAD_URL"
+
+        # Étape 3: Finaliser le téléchargement
+        curl -X PATCH \
+          -H "X-API-Token: $APPCENTER_API_TOKEN" \
+          -H "accept: application/json" \
+          -d '{"status": "committed"}' \
+          "https://api.appcenter.ms/v0.1/apps/$OWNER_NAME/$APP_NAME/release_uploads/$UPLOAD_ID"
+
+        # Étape 4: Distribuer à un groupe de distribution
+        curl -X PATCH \
+          -H "X-API-Token: $APPCENTER_API_TOKEN" \
+          -H "accept: application/json" \
+          -H "Content-Type: application/json" \
+          -d "{\"destination_name\": \"$DISTRIBUTION_GROUP\", \"release_notes\": \"Branch: ${CI_COMMIT_REF_NAME:-main} - Build ${CI_PIPELINE_IID}\"}" \
+          "https://api.appcenter.ms/v0.1/apps/$OWNER_NAME/$APP_NAME/releases/$UPLOAD_ID"
+
+        echo "Distribution de l'APK réussie avec le tag ${TAG_NAME}"
       else
-        echo "APK file does not exist at $apkPath. Distribution aborted."
+        echo "Erreur: APK non trouvé à ${APK_PATH}. Distribution annulée."
         exit 1
       fi
+  only:
+    - main
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
