@@ -88,6 +88,10 @@ distribute:
   dependencies:
     - build
   script:
+    - BUILD_NUMBER="${CI_PIPELINE_ID}"
+    - BRANCH_NAME="${CI_COMMIT_REF_NAME}"
+    - COMMIT_ID=$(git rev-parse --short HEAD)
+
     - cd android  # Entrer dans le répertoire android 
     - fastlane android distribute
   rules:
