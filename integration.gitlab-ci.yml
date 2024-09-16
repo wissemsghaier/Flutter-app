@@ -95,7 +95,7 @@ upload:
   script:
     - echo "Determining commit ID..."
     - COMMIT_ID=$(git rev-parse --short HEAD)
-    - ZIP_FILE_NAME="artifact-${COMMIT_ID}.zip"
+    - ZIP_FILE_NAME="project-flutter-${COMMIT_ID}.zip"
     - echo "Uploading ${ZIP_FILE_NAME} to Nexus..."
     - UPLOAD_URL="${NEXUS_URL}/repository/${NEXUS_REPOSITORY}/${GROUP_ID//./\/}/${ARTIFACT_ID}/${COMMIT_ID}/${ZIP_FILE_NAME}"
     - pwd  # Print working directory
