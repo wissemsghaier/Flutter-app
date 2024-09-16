@@ -15,7 +15,7 @@ variables:
   ZIP_FILE_NAME: '${ARTIFACT_ID}-${COMMIT_ID}.zip'
   BRANCH_NAME: "${CI_COMMIT_REF_NAME}"
   BUILD_NUMBER: "${CI_PIPELINE_ID}"
-  COMMIT_ID: "${CI_COMMIT_SHORT_SHA}"
+  
 
 # Définir la variable de branche comme paramètre
 
