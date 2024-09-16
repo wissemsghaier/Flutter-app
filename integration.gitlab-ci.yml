@@ -120,18 +120,32 @@ distribute:
     - |
       if [ -f "$apkPath" ]; then
         echo "APK file exists. Proceeding with distribution."
-        FILE_SIZE=$(stat -c%s "$apkPath")
-        MAX_SIZE=104857600  # 100 MB in bytes
+        
+        # Crée une session d'upload sur App Center
+        UPLOAD_ID=$(curl -X POST \
+          -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
+          https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads \
+          | jq -r '.upload_id')
 
-        if [ "$FILE_SIZE" -le "$MAX_SIZE" ]; then
-          curl -F "ipa=@${apkPath}" \
-               -F "release_notes=Branch: ${CI_COMMIT_REF_NAME} - Build ${CI_PIPELINE_ID} - Commit ${COMMIT_ID}" \
-               -F "distribution_group=flutter-app" \
-               -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
-               https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads || \
+        UPLOAD_URL=$(curl -X POST \
+          -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
+          https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads \
+          | jq -r '.upload_url')
+
+        if [ -n "$UPLOAD_URL" ]; then
+          echo "Starting multipart upload..."
+          curl -X PUT "$UPLOAD_URL" \
+            -F "ipa=@${apkPath}" || \
           (echo "Failed to upload APK file. Distribution aborted." && exit 1)
+
+          # Finaliser l'upload sur App Center
+          curl -X PATCH \
+            -H "X-API-Token: 79aabd068b99a4b35b3688e39b1a69ff6eec38e6" \
+            https://api.appcenter.ms/v0.1/apps/sghaier-fss.u-sfax.tn/flutter-app/release_uploads/$UPLOAD_ID \
+            -d '{"status": "committed"}' || \
+          (echo "Failed to commit APK file. Distribution aborted." && exit 1)
         else
-          echo "File size exceeds the limit of $MAX_SIZE bytes. Distribution aborted."
+          echo "Failed to initiate upload. Distribution aborted."
           exit 1
         fi
       else
@@ -141,4 +155,5 @@ distribute:
   rules:
     - if: '$CI_COMMIT_REF_NAME == $TARGET_BRANCH'
       when: always
+
 
